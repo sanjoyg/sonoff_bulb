@@ -1,3 +1,4 @@
+current_port=8081
 $(function(){
   $(".power").click(function() {
     //$("body").toggleClass("active");
@@ -9,6 +10,8 @@ $(function(){
 });
 
 $(document).ready(function() {
+    console.log(window.location.href);
+    current_port=window.location.href.split("/")[2].split(":")[1];
     setInterval(call_twin,10000);
 });
 
@@ -27,6 +30,8 @@ function make_rgb(rgb_dict) {
 
 function set_state(data) {
 
+    console.log("We are at : " + current_port)
+    console.log("http://0.0.0.0:" + current_port + "/zeroconf/info", true);
     if (!data.hasOwnProperty("data")) 
         return;
 
@@ -91,7 +96,9 @@ function call_twin() {
             set_state(ret);
          }
     };
-    xhttp.open("POST", "http://0.0.0.0:8081/zeroconf/info", true);
+    url_to_post="http://0.0.0.0:" + current_port + "/zeroconf/info"
+    //xhttp.open("POST", "http://0.0.0.0:8081/zeroconf/info", true);
+    //xhttp.open("POST", url_to_post, true);
     xhttp.setRequestHeader("Content-type", "application/json");
     xhttp.send('{"deviceid" : "test" }')
 }

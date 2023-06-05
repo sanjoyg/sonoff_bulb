@@ -7,8 +7,11 @@ import logging
 logger = logging.getLogger("sonoff-diy-bulb")
 
 class sonoff_bulb:
+    
+    mock_count : int = 0
+    
     def __init__(self, name, device_id, mock=False):
-        logger.debug("Initializing device name: {}, device_id: {}".format(name, device_id))
+        logger.debug("Initializing device name: {}, device_id: {}, mock: {}".format(name, device_id, mock))
         self._name = name
         self._device_id = device_id
         self._url = "http://eWeLink_{}.local:8081".format(device_id)
@@ -22,12 +25,19 @@ class sonoff_bulb:
         self._ct = 0
         self._rgb = (0,0,0)
         self._mock = mock
-
+        
         if self._mock:
+            sonoff_bulb.mock_count = sonoff_bulb.mock_count + 1
+            self._my_mock_count = sonoff_bulb.mock_count
+            logger.debug("My Mock count : {}".format(self._my_mock_count))
+        
+        if self._mock:
+            logger.info("We are mocked to starting twin...")
             import subprocess
-            subprocess.Popen(["python3", "custom_components/sonoff_diy_bulb/twin/sonoff_bulb_twin.py"])
-            self._url="http://0.0.0.0:8081"
-            
+            listen_port = 8080 + self._my_mock_count
+            subprocess.Popen(["python3", "custom_components/sonoff_diy_bulb/twin/sonoff_bulb_twin.py",str(listen_port)])
+            self._url="http://0.0.0.0:808" + str(self._my_mock_count)
+            logger.debug("Set url to : {}".format(self._url))
         logger.debug("Initializing complete...")
 
     def __str__(self):
@@ -95,7 +105,9 @@ class sonoff_bulb:
         logger.debug("Pinging Device... : {}".format(self._device_id))
 
         if self._mock:
-            self._resolved_url="http://0.0.0.0:8081"
+            logger.debug("We are mocked so returning local host...")
+            self._resolved_url="http://0.0.0.0:808" + str(self._my_mock_count)
+            logger.debug("Set resolved url to : {}".format(self._url))
             return True
 
         try:
@@ -120,7 +132,10 @@ class sonoff_bulb:
         logger.debug("Resolving...ip... : {}".format(self._device_id))
 
         if self._mock:
-            return
+            logger.debug("We are mocked so resolving to local host...")
+            self._resolved_url="http://0.0.0.0:808" + str(self._my_mock_count)
+            logger.debug("Set resolved url to : {}".format(self._url))
+            return 
 
         try:
 
@@ -331,3 +346,4 @@ class sonoff_bulb:
 
 if __name__ == "__main__":
     bulb = sonoff_bulb("bulb_name","bulb_test")
+

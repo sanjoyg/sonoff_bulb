@@ -1,3 +1,4 @@
+import sys
 from flask import Flask
 from flask import request
 import logging
@@ -23,7 +24,7 @@ class sonoff_bulb_twin:
         self._ct = 0
         self._rgb = [0,0,0]
         logger.debug("Initializing complete...")
-
+        
     def __str__(self):
         to_return = "\n"
         to_return = to_return + "device_id      : {}".format(self._device_id) + "\n" 
@@ -144,4 +145,12 @@ def send_report(path):
     return send_from_directory('html', path)
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=8081)
+    
+    listen_port = 8081
+
+    if len(sys.argv) > 1:
+        try:
+            listen_port = int(sys.argv[1])
+        except:
+            pass
+    app.run(host="0.0.0.0", port=listen_port)

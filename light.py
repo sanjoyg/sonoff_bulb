@@ -2,7 +2,7 @@ import logging
 import voluptuous as vol
 from pprint import pformat
 import homeassistant.helpers.config_validation as cv
-from homeassistant.const import CONF_FILENAME, CONF_HOST
+#from homeassistant.const import CONF_FILENAME, CONF_HOST
 from homeassistant.components.light import PLATFORM_SCHEMA
 from homeassistant.const import CONF_DEVICE_ID, CONF_NAME
 from homeassistant.core import HomeAssistant
@@ -39,6 +39,8 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional("mock", default=False): cv.boolean
 })
 
+from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntry, ConfigEntryState
+
 async def async_setup_platform(
         hass : HomeAssistant, 
         config : ConfigType, 
@@ -54,8 +56,21 @@ async def async_setup_platform(
     add_entities([sonoff_diy_bulb(name, config_id, mock)], True)
     logger.info("Setup Platform complete...")
 
-class sonoff_diy_bulb(LightEntity):
+async def async_setup_entry(hass: HomeAssistant, config: ConfigEntry, async_add_entities: AddEntitiesCallback,) -> None:
+    
+    logger.debug("In here at light with etnry")
+    logger.debug(config)
+    logger.debug(config.data)
+    name = config.data[CONF_NAME]
+    config_id = config.data[CONF_DEVICE_ID]
+    mock = config.data["mock"]
 
+    logger.info("Mock Mode: {}".format(mock))
+    async_add_entities([sonoff_diy_bulb(name, config_id, mock)], True)
+    logger.info("Setup Platform complete...")
+    
+class sonoff_diy_bulb(LightEntity):
+    
     def __init__(self, name, device_id, mock=False) -> None:
         logger.debug("sonoff_diy_bulb ctor...")
         self._bulb = sonoff_bulb.sonoff_bulb(name, device_id, mock)
